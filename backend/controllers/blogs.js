@@ -1,56 +1,56 @@
-const blogsRouter = require('express').Router();
-const Blog = require('../models/blog');
-const middleware = require('../utils/middleware')
+const blogsRouter = require("express").Router();
+const Blog = require("../models/blog");
+const { tokenExtractor } = require('../utils/middleware');
 
-blogsRouter.get('/', (request, response, next) => {
-  Blog.find({})
-    .then(blogs => {
-      response.json(blogs);
-    })
-    .catch(error => next(error));
+blogsRouter.get("/", (req, res) => {
+  Blog.find({}).then((blogs) => res.json(blogs));
 });
 
-blogsRouter.get('/:id', (request, response, next) => {
-  Blog.findById(request.params.id)
+blogsRouter.get("/:id", tokenExtractor, (req, res, next) => {
+  Blog.findById(req.params.id)
     .then((blog) => {
       if (blog) {
-        response.json(blog);
+        res.json(blog);
       } else {
-        response.status(404).end();
+        res.status(404).end();
       }
     })
     .catch(error => next(error));
 });
 
-blogsRouter.post('/', middleware.tokenExtractor, async (request, response, next) => {
-  const body = request.body;
+blogsRouter.post("/", tokenExtractor, async (req, res, next) => {
+  const { title, author, url } = req.body;
+
+  if (!title || !author || !url) {
+    return res.status(400).json({ message: 'Title, author, and URL are required' });
+  }
 
   const blog = new Blog({
-    content: body.content,
-    important: body.important || false,
-    user: request.user._id
+    title,
+    author,
+    url,
+    user: req.user._id,
   });
 
   blog.save()
     .then(savedBlog => {
-      response.json(savedBlog);
+      res.json(savedBlog);
     })
     .catch(error => next(error));
 });
 
-blogsRouter.delete('/:id', (request, response, next) => {
-  Blog.findByIdAndDelete(request.params.id)
-    .then(() => {
-      response.status(204).end();
-    })
-    .catch(error => next(error));
+blogsRouter.delete('/:id', async (request, response) => {
+  await Blog.findByIdAndRemove(request.params.id);
+  response.status(204).end();
 });
 
 blogsRouter.put('/:id', (request, response, next) => {
   const body = request.body;
 
   const updatedBlog = {
-    content: body.content,
+    title: body.title,
+    author: body.author,
+    url: body.url,
     important: body.important,
   };
 

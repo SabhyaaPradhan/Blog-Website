@@ -1,60 +1,71 @@
-const logger = require('./logger')
-const User = require('../models/user')
-const jwt = require("jsonwebtoken")
+const logger = require("./logger");
+const User = require("../models/user");
+const jwt = require('jsonwebtoken');
 
-const requestLogger = (request, response, next) => {
-  logger.info('Method: ', request.method)
-  logger.info('Path: ', request.path)
-  logger.info('Body: ', request.body)
-  logger.info('---')
-  next()
-}
+const requestLogger = (req, res, next) => {
+  logger.info("Method: ", req.method);
+  logger.info("Path: ", req.path);
+  logger.info("Body: ", req.body);
 
-const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: 'unknown endpoint' });
-}
+  next();
+};
 
-const errorHandler = (error, request, response, next) => {
-  logger.error(error.message)
+const unknownEndpoint = (req, res, next) => {
+  res.status(404).send({ message: "Unknown endpoint" });
+};
 
-  if (error.name === 'CastError') {
-    return response.status(400).send({ error: 'malformatted id' });
-  } else if (error.name === 'ValidationError') {
-    return response.status(400).json({ error: error.message });
+const errorHandler = (error, req, res, next) => {
+  logger.error(error.name);
+
+  if (error instanceof CastError) {
+    res.status(400).send({ message: "Send a valid id" });
+  } else if (error instanceof MongooseError) {
+    res.status(400).send({ message: "Can't connect to Mongoose" });
+  } else if (error.name === 'JsonWebTokenError') {
+    res.status(401).send({ message: "Invalid token" });
   }
 
   next(error);
-}
+};
 
-const getTokenFrom = request => {
-  const authorization = request.get("authorization")
-  if(authorization && authorization.startsWith('Bearer ')) {
-    return authorization.replace('Bearer ', '')
+const getTokenFrom = (req) => {
+  const authorization = req.get("Authorization");
+
+  if (authorization && authorization.startsWith("Bearer ")) {
+    return authorization.replace("Bearer ", "");
   }
-  return null
-}
 
-const tokenExtractor = async (request, response, next) => {
+  return null;
+};
+
+const tokenExtractor = async (req, res, next) => {
   try {
-    const decodedToken = await jwt.verify(getTokenFrom(request), process.env.SECRET);
+    const token = getTokenFrom(req);
+
+    if (!token) {
+      return res.status(401).json({ message: "No token provided" });
+    }
+
+    const decodedToken = jwt.verify(token, process.env.SECRET);
 
     if (!decodedToken.id) {
-      return response.status(401).json({ message: "Invalid token" });
+      throw new Error("Invalid token");
     }
 
     const user = await User.findById(decodedToken.id);
 
     if (!user) {
-      return response.status(401).json({ message: "User not found" });
+      throw new Error("User not found");
     }
 
-    request.user = user;
+    req.user = user;
     next();
   } catch (error) {
-    console.error('JWT Verification Error:', error);
-    return response.status(401).json({ message: "Invalid token" });
+    console.error('JWT Verification Error:', error.message);
+    return res.status(401).json({ message: error.message });
   }
 };
+
 
 module.exports = {
   requestLogger,
