@@ -34,7 +34,7 @@ h1 {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    background-color: #333; /* Dark navigation background color */
+    background-color: #333; 
     padding: 10px;
-    margin: auto; /* Center align horizontally */
+    margin: auto;
   }

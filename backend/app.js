@@ -21,7 +21,6 @@ app.get('/', (req, res) => {
 
 app.use("/api/users", userRouter);
 app.use("/api/blogs", blogRouter);
-// Inside your backend route handling blogs
 app.put('/api/blogs/:id', async (req, res) => {
   const { id } = req.params;
 
