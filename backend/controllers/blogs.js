@@ -6,7 +6,7 @@ blogsRouter.get("/", (req, res) => {
   Blog.find({}).then((blogs) => res.json(blogs));
 });
 
-blogsRouter.get("/:id", tokenExtractor, (req, res, next) => {
+blogsRouter.get("/:id", (req, res, next) => {
   Blog.findById(req.params.id)
     .then((blog) => {
       if (blog) {
@@ -26,9 +26,9 @@ blogsRouter.post("/", tokenExtractor, async (req, res, next) => {
   }
 
   const blog = new Blog({
-    title,
-    author,
-    url,
+    title: title,
+    author: author,
+    url: url,
     user: req.user._id,
   });
 

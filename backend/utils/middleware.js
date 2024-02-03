@@ -1,3 +1,4 @@
+const { Error: MongooseError, CastError } = require('mongoose');
 const logger = require("./logger");
 const User = require("../models/user");
 const jwt = require('jsonwebtoken');
@@ -28,7 +29,7 @@ const errorHandler = (error, req, res, next) => {
   next(error);
 };
 
-const getTokenFrom = (req) => {
+const getTokenFrom = req => {
   const authorization = req.get("Authorization");
 
   if (authorization && authorization.startsWith("Bearer ")) {
@@ -39,13 +40,13 @@ const getTokenFrom = (req) => {
 };
 
 const tokenExtractor = async (req, res, next) => {
+  const token = getTokenFrom(req);
+
+  if (!token) {
+    return res.status(401).json({ message: "No token provided" });
+  }
+
   try {
-    const token = getTokenFrom(req);
-
-    if (!token) {
-      return res.status(401).json({ message: "No token provided" });
-    }
-
     const decodedToken = jwt.verify(token, process.env.SECRET);
 
     if (!decodedToken.id) {
@@ -65,7 +66,6 @@ const tokenExtractor = async (req, res, next) => {
     return res.status(401).json({ message: error.message });
   }
 };
-
 
 module.exports = {
   requestLogger,

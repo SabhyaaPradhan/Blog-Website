@@ -2,5 +2,8 @@
   "dependencies": {
     "react-bootstrap": "^2.10.0",
     "react-router-dom": "^6.21.3"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
   }
 }

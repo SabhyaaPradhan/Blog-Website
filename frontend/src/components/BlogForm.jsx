@@ -5,7 +5,7 @@ const BlogForm = ({ createBlog }) => {
   const [author, setAuthor] = useState('');
   const [url, setUrl] = useState('');
 
-  const handleCreateBlog = (event) => {
+  const handleCreateBlog = async (event) => {
     event.preventDefault();
 
     createBlog({
@@ -50,4 +50,4 @@ const BlogForm = ({ createBlog }) => {
   );
 };
 
-export default BlogForm
+export default BlogForm;

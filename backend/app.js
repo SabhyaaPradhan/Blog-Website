@@ -1,39 +1,48 @@
-const config = require('./utils/config')
-const express = require('express')
-const app = express()
-const cors = require('cors')
-const blogsRouter = require('./controllers/blogs')
-const userRouter = require('./controllers/users')
-const middleware = require('./utils/middleware')
-const logger = require('./utils/logger')
-const mongoose = require('mongoose')
+const express = require('express');
+const mongoose = require('mongoose');
+const { requestLogger, unknownEndpoint, errorHandler } = require('./utils/middleware');
+const app = express();
+const blogRouter = require('./controllers/blogs');
+const userRouter = require('./controllers/users');
+const logger = require('./utils/logger');
+const config = require('./utils/config');
 
-mongoose.set('strictQuery', true)
-
-logger.info('connecting to', config.MONGODB_URI)
-
+mongoose.set('strictQuery', true);
 mongoose.connect(config.MONGODB_URI)
-  .then(() => {
-    logger.info('connected to MongoDB')
-  })
-  .catch((error) => {
-    logger.error('error connecting to MongoDB:', error.message)
-  })
+  .then(() => logger.info('Connected to mongodb'))
+  .catch(() => logger.error('Couldn\'t connect to mongodb'));
 
-app.get('/', (req, res)=> {
-  res.end('Welcome')
+app.use(express.json());
+app.use(requestLogger);
+
+app.get('/', (req, res) => {
+  res.end('Welcome to my application');
 })
 
-app.use(cors())
-app.use(express.static('dist'))
-app.use(express.json())
-app.use(middleware.requestLogger)
+app.use("/api/users", userRouter);
+app.use("/api/blogs", blogRouter);
+// Inside your backend route handling blogs
+app.put('/api/blogs/:id', async (req, res) => {
+  const { id } = req.params;
 
-app.use("/api/users", userRouter)
-app.use(middleware.tokenExtractor)
-app.use('/api/blogs', blogsRouter)
+  try {
+    const blog = await Blog.findById(id);
 
-app.use(middleware.unknownEndpoint)
-app.use(middleware.errorHandler)
+    if (!blog) {
+      return res.status(404).json({ message: 'Blog not found' });
+    }
 
-module.exports = app
+    blog.likes += 1;
+    await blog.save();
+
+    res.json(blog);
+  } catch (error) {
+    console.error('Error updating likes:', error.message);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+
+app.use(errorHandler);
+app.use(unknownEndpoint);
+module.exports = app;

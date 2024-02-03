@@ -1,8 +1,27 @@
-import React from 'react';
+import blogService from '../services/blog';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 
-const SingleBlog = ({ blog }) => {
+const SingleBlog = () => {
+  const { id } = useParams();
+  const [blog, setBlog] = useState(null);
+
+  useEffect(() => {
+    const fetchBlogDetails = async () => {
+      try {
+        const fetchedBlog = await blogService.getSingleBlog(id);
+        setBlog(fetchedBlog);
+      } catch (error) {
+        console.error('Error fetching blog details:', error.message);
+        setBlog(null);
+      }
+    };
+
+    fetchBlogDetails();
+  }, [id]);
+
   if (!blog) {
-    return null;
+    return <p>Loading...</p>;
   }
 
   return (
