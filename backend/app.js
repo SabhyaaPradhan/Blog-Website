@@ -21,26 +21,7 @@ app.get('/', (req, res) => {
 
 app.use("/api/users", userRouter);
 app.use("/api/blogs", blogRouter);
-app.put('/api/blogs/:id', async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const blog = await Blog.findById(id);
-
-    if (!blog) {
-      return res.status(404).json({ message: 'Blog not found' });
-    }
-
-    blog.likes += 1;
-    await blog.save();
-
-    res.json(blog);
-  } catch (error) {
-    console.error('Error updating likes:', error.message);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
-
+app.use("/api/blogs/:id", userRouter)
 
 app.use(errorHandler);
 app.use(unknownEndpoint);

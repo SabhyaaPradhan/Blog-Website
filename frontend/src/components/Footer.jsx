@@ -1,6 +1,6 @@
 const Footer = () => {
     const footerStyle = {
-      color: 'grey',
+      color: 'green',
       fontStyle: 'italic',
       fontSize: 16,
     }
@@ -8,7 +8,7 @@ const Footer = () => {
     return (
       <div style={footerStyle}>
         <br />
-        <em>Website by Sabhyaa Pradhan</em>
+        <em>Website by Sabhyaa Pradhan © 2024</em>
       </div>
     )
   }

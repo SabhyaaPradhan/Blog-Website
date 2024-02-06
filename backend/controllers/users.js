@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const User = require('../models/user');
+const Blog = require('../models/blog')
 const jwt = require('jsonwebtoken');
 
 const userRouter = express.Router();
@@ -65,5 +66,21 @@ userRouter.post("/login", async (req, res, next) => {
         next(error);
     }
 })
+
+userRouter.get("/", (req, res) => {
+    User.find({}).then((users) => res.json(users))
+});
+
+userRouter.get('blogs/:id', async (req, res, next) => {
+    const { id } = req.params;
+    try {
+      const blogs = await Blog.find({ user: id });
+  
+      res.json(blogs);
+    } catch (error) {
+      next(error);
+    }
+});
+
 
 module.exports = userRouter

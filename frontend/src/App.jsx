@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Form, Button, Container, Nav, Navbar } from 'react-bootstrap'
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Link,
-  Navigate,
   useNavigate,
+  useLocation
 } from 'react-router-dom';
 import Blog from './components/Blog';
 import WelcomeSlideshow from './components/WelcomeSlideshow';
@@ -17,7 +18,10 @@ import BlogForm from './components/BlogForm';
 import blogService from './services/blog';
 import loginService from './services/login';
 import SingleBlog from './components/SingleBlog';
+import LikeButton from './services/LikeButton';
 import RegistrationForm from './components/RegistrationForm';
+import Users from './components/Users'
+import BlogList from './components/BlogList';
 
 function Home({ showAll, toggleLikeOf, handleDelete }) {
   const [blogs, setBlogs] = useState([]);
@@ -43,7 +47,7 @@ function Home({ showAll, toggleLikeOf, handleDelete }) {
   return (
     <div>
       <WelcomeSlideshow />
-      <h2>Blogs</h2>
+      <h2>Stay Curious.</h2>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         {sortedBlogsToShow.map((blog) => (
           <Blog
@@ -63,6 +67,7 @@ function Create() {
   return (
     <div>
       <h2>Create Blog</h2>
+      <h5>Get started with your blogs</h5>
     </div>
   );
 }
@@ -86,8 +91,10 @@ function App() {
   const [password, setPassword] = useState('');
   const [user, setUser] = useState(null);
   const [loginVisible, setLoginVisible] = useState(false);
+  const [registrationVisible, setRegistrationVisible] = useState(false);
   const [notification, setNotification] = useState(null);
   const navigate = useNavigate();
+  const currentRoute = location.pathname;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -114,24 +121,21 @@ function App() {
 
   const blogFormRef = useRef();
 
-  const toggleLikeOf = (id) => {
-    const blog = blogs.find((b) => b.id === id);
-    const changedBlog = { ...blog, likes: blog.likes + 1 };
+  const toggleLikeOf = async (id) => {
+    try {
+      const blog = blogs.find((b) => b.id === id);
+      const changedBlog = { ...blog, likes: blog.likes + 1 };
 
-    blogService
-      .update(id, changedBlog)
-      .then((returnedBlog) => {
-        setBlogs(blogs.map((blog) => (blog.id !== id ? blog : returnedBlog)));
-        navigate('/');
-      })
-      .catch((error) => {
-        setErrorMessage(
-          `Blog '${blog.title}' was already removed from the server`
-        );
-        setTimeout(() => {
-          setErrorMessage(null);
-        }, 5000);
-      });
+      const returnedBlog = await blogService.update(id, changedBlog);
+
+      setBlogs(blogs.map((blog) => (blog.id !== id ? blog : returnedBlog)));
+    } catch (error) {
+      console.error('Toggle Like error:', error.message);
+      setErrorMessage('Error updating like count');
+      setTimeout(() => {
+        setErrorMessage(null);
+      }, 5000);
+    }
   };
 
   const handleDelete = (id) => {
@@ -197,19 +201,19 @@ function App() {
       setIsLoggedIn(true);
       setLoginVisible(false);
     } catch (exception) {
-      setErrorMessage('Wrong credentials');
       setTimeout(() => {
         setErrorMessage(null);
       }, 5000);
     }
   };
 
-
   const handleRegistration = (newUser) => {
     setNotification(`User "${newUser.username}" registered successfully!`);
     setTimeout(() => {
       setNotification(null);
     }, 5000);
+    console.log('Registration data:', newUser);
+    setRegistrationVisible(false);
     navigate('/');
   };
 
@@ -219,31 +223,44 @@ function App() {
   };
 
   const loginForm = () => {
-    const hideWhenVisible = { display: loginVisible ? 'none' : '' };
-    const showWhenVisible = { display: loginVisible ? '' : 'none' };
-
     return (
       <div>
-        <div style={hideWhenVisible}>
-          <button onClick={() => setLoginVisible(true)}>Log in</button>
-        </div>
-        <div style={showWhenVisible}>
-          <LoginForm
-            username={username}
-            password={password}
-            handleUsernameChange={({ target }) => setUsername(target.value)}
-            handlePasswordChange={({ target }) => setPassword(target.value)}
-            handleSubmit={handleLogin}
-          />
-          <button onClick={() => setLoginVisible(false)}>Cancel</button>
-        </div>
+        <LoginForm
+          username={username}
+          password={password}
+          handleUsernameChange={({ target }) => setUsername(target.value)}
+          handlePasswordChange={({ target }) => setPassword(target.value)}
+          handleSubmit={handleLogin}
+        />
+        <a>
+        <Button onClick={() => setLoginVisible(false)} variant="outline-danger" type="button">
+          Cancel
+        </Button>
+        </a>
+      </div>
+    );
+  };
+
+  const registrationForm = () => {
+    return (
+      <div>
+        <RegistrationForm
+          username={username}
+          password={password}
+          handleUsernameChange={({ target }) => setUsername(target.value)}
+          handlePasswordChange={({ target }) => setPassword(target.value)}
+          handleRegistration={handleRegistration}
+        />
+        <Button onClick={() => setRegistrationVisible(false)} variant="outline-danger" type="button">
+          Cancel
+        </Button>
       </div>
     );
   };
 
   const blogForm = () => (
-    <Togglable buttonLabel="New Blog" ref={blogFormRef}>
-      <BlogForm createBlog={addBlog} />
+    <Togglable buttonLabel="Add Blog" ref={blogFormRef}>
+      <BlogForm createBlog={addBlog} currentRoute={currentRoute} />
     </Togglable>
   );
 
@@ -251,18 +268,30 @@ function App() {
     <div style={{ textAlign: 'center' }}>
       {user ? (
         <>
-          <nav style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#eee', padding: '10px' }}>
-            <Link style={{ textDecoration: 'none' }} to="/">
-              Home
-            </Link>
-            <Link style={{ textDecoration: 'none' }} to="/create">
-              Create
-            </Link>
-            <Link style={{ textDecoration: 'none' }} to="/about">
-              About
-            </Link>
-            <button onClick={handleLogout}>Logout</button>
-          </nav>
+          <Navbar bg="light" data-bs-theme="light" style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '10px' }}>
+            <Container>
+              <Navbar.Brand href="/"><img
+                alt=""
+                src="Logo1.png"
+                width="30"
+                height="30"
+                className="d-inline-block align-top"
+              />{' '}
+                BlogBursts</Navbar.Brand>
+              <Nav className="me-auto">
+                <Nav.Link href="/" to="/">Home</Nav.Link>
+                <Nav.Link href="/create" to="/create">Create</Nav.Link>
+                <Nav.Link href="/users" to="/users">Users</Nav.Link>
+                <Nav.Link href="/about" to="/about">About</Nav.Link>
+                <Button variant="outline-danger" type="submit" onClick={handleLogout}>
+                  Logout
+                </Button>
+              </Nav>
+              <div style={{ color: 'black', display: 'flex', justifyContent: 'space-around', alignContent: 'center', alignItems: 'center' }}>
+                <p>{user.username} logged in</p>
+              </div>
+            </Container>
+          </Navbar>
           <h1>BlogBursts</h1>
           <Routes>
             <Route
@@ -277,36 +306,65 @@ function App() {
               }
             />
             <Route path="/create" element={<Create />} />
+            <Route path="/users" element={<Users />} />
             <Route path="/about" element={<About />} />
-            <Route path="blogs/:id" element={<SingleBlog />} />
+            <Route path="/blogs/:id" element={<BlogList />} />
           </Routes>
           <Notification message={errorMessage} />
           <div>
             {blogForm()}
-            <button onClick={() => setShowAll(!showAll)}>
-              Show {showAll ? 'liked' : 'all'} blogs
-            </button>
+            <Form>
+              <Button onClick={() => setShowAll(!showAll)} variant="secondary" type="button">
+                Show {showAll ? 'liked' : 'all'} blogs
+              </Button>
+            </Form>
           </div>
           <Footer />
         </>
       ) : (
         <Routes>
           <Route
-            path="/"
+            path="/*"
             element={
               <>
-                <h1> Welcome to Blog Website</h1>
-                <p>Welcome to BlogBursts, where words come alive and ideas take flight! 
+                <Navbar bg="light" data-bs-theme="light" style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '10px' }}>
+                  <Container>
+                    <Navbar.Brand href="/">
+                    <img
+                        alt=""
+                        src="Logo1.png"
+                        width="30"
+                        height="30"
+                        className="d-inline-block align-top"
+                      />{' '}
+                      BlogBursts</Navbar.Brand>
+                    <Nav className="me-auto">
+                      <Nav.Link href="/" to="/">Home</Nav.Link>
+                      <Nav.Link href="/login">Login</Nav.Link>
+                      <Nav.Link href="/register">Register</Nav.Link>
+                    </Nav>
+                  </Container>
+                </Navbar>
+                <h1> Welcome to BlogBursts</h1>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route
+                    path="/login"
+                    element={loginForm()}
+                  />
+                  <Route
+                    path="/register"
+                    element={registrationForm()}
+                  />
+                </Routes>
+                <p>Welcome to BlogBursts, where words come alive and ideas take flight!
                   Dive into a world of captivating narratives, insightful perspectives, and thought-provoking discussions.</p>
-                <p>Our blog is a vibrant tapestry of diverse topics, from the latest trends in technology and science to the intricacies of art and culture. 
-                  We strive to be your go-to destination for informative and entertaining content, providing a unique blend of expertise and relatability. 
+                <p>Our blog is a vibrant tapestry of diverse topics, from the latest trends in technology and science to the intricacies of art and culture.
+                  We strive to be your go-to destination for informative and entertaining content, providing a unique blend of expertise and relatability.
                   Whether you're a tech enthusiast, a culture connoisseur, or simply seeking inspiration, our blog is crafted to engage, enlighten, and entertain. </p>
-                <p>Join us on a journey of exploration and discovery, where every post is a doorway to new ideas and perspectives. 
+                <p>Join us on a journey of exploration and discovery, where every post is a doorway to new ideas and perspectives.
                   Welcome to the intersection of knowledge and creativity; welcome to BlogBursts!</p>
-                <RegistrationForm
-                  handleRegistration={handleRegistration}
-                />
-                Already have an account?{loginForm()}
+                <Footer />
               </>
             }
           />

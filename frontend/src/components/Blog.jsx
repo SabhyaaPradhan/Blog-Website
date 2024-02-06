@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { Card, Button } from 'react-bootstrap';
+import LikeButton from '../services/LikeButton';
 
 const Blog = ({ blog, toggleLike, handleDelete }) => {
   if (!blog) {
@@ -16,9 +17,8 @@ const Blog = ({ blog, toggleLike, handleDelete }) => {
         <Card.Body>
           <Card.Title>{title || 'Unknown Title'}</Card.Title>
           <Card.Subtitle className="mb-2 text-muted">by {author || 'Unknown Author'}</Card.Subtitle>
-          <Card.Text>Likes: {likes || 0}</Card.Text>
-          <Button variant="primary" onClick={toggleLike}>Like</Button>
-          <Button variant="danger" onClick={handleDelete}>Delete</Button>
+          <LikeButton />
+          <Button variant="outline-danger" onClick={handleDelete}>Delete</Button>
           <Link to={`/blogs/${id}`} className="btn btn-link">View Details</Link>
         </Card.Body>
       </Card>

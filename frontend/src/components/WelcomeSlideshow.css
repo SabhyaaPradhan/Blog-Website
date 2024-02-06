@@ -1,0 +1,8 @@
+.carousel-item {
+  height: 400px;
+  background-image: url(img12.jpg);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}

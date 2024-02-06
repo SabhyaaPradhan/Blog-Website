@@ -4,7 +4,7 @@ const baseUrl = '/api/users';
 
 const register = async (userData) => {
   try {
-    const response = await axios.post('/api/register', userData);
+    const response = await axios.post('/api/users/register', userData);
     return response.data;
   } catch (error) {
     throw new Error(error.response.data.message || 'Registration failed');
