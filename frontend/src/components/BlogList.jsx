@@ -2,31 +2,32 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
 function BlogList() {
+  const { userId } = useParams();
   const [blogs, setBlogs] = useState([]);
-  const { id } = useParams();
+  const [error, setErrorMessage] = useState();
 
   useEffect(() => {
-    const fetchUserBlogs = async () => {
+    const fetchUserBlogs = async (userId) => {
       try {
-        const response = await fetch(`/blogs/${id}`);
-        const data = await response.json();
-
-        if (Array.isArray(data)) {
-          setBlogs(data);
-        } else {
-          console.error('API response is not an array:', data);
-        }
+        const response = await fetch(`/api/blogs/${userId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch user-specific blogs');
+       }
+        const userBlogs = await response.json();
+        console.log('User-specific blogs:', userBlogs);
+        setBlogs(userBlogs);
       } catch (error) {
-        console.error('Error fetching user blogs:', error.message);
+        setErrorMessage('Error fetching user-specific blogs: ' + error.message);
       }
     };
-
-    fetchUserBlogs();
-  }, [id]);
+    
+    fetchUserBlogs(userId);
+  }, [userId]);
 
   return (
     <div>
       <h2>User Blogs</h2>
+      {error && <p>Error: {error}</p>}
       <ul>
         {blogs.map((blog) => (
           <li key={blog.id}>{blog.title}</li>

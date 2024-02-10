@@ -55,7 +55,7 @@ h2 {
 body {
   display: flex;
   flex-direction: column;
-  background-color: #060000;
+  background-color: #fdf9f9;
   color: #0a0000;
   font-family: 'Times New Roman', Times, serif;
   min-height: 100vh;

@@ -6,7 +6,8 @@ import {
   Route,
   Link,
   useNavigate,
-  useLocation
+  useLocation,
+  useParams
 } from 'react-router-dom';
 import Blog from './components/Blog';
 import WelcomeSlideshow from './components/WelcomeSlideshow';
@@ -25,6 +26,10 @@ import BlogList from './components/BlogList';
 
 function Home({ showAll, toggleLikeOf, handleDelete }) {
   const [blogs, setBlogs] = useState([]);
+  const handleEdit = (editedTitle, editedContent) => {
+    console.log("Edited Title:", editedTitle);
+    console.log("Edited Content:", editedContent);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -55,6 +60,7 @@ function Home({ showAll, toggleLikeOf, handleDelete }) {
             blog={blog}
             toggleLike={() => toggleLikeOf(blog.id)}
             handleDelete={() => handleDelete(blog.id)}
+            handleEdit={() => handleEdit(blog.id)}
           />
         ))}
       </div>
@@ -95,6 +101,7 @@ function App() {
   const [notification, setNotification] = useState(null);
   const navigate = useNavigate();
   const currentRoute = location.pathname;
+  const { id: userId} = useParams()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -308,7 +315,8 @@ function App() {
             <Route path="/create" element={<Create />} />
             <Route path="/users" element={<Users />} />
             <Route path="/about" element={<About />} />
-            <Route path="/blogs/:id" element={<BlogList />} />
+            <Route path="/blogs/:id" element={<SingleBlog />} />
+            <Route path="/blogs/:id" element={<BlogList userId={userId}/>} />
           </Routes>
           <Notification message={errorMessage} />
           <div>
@@ -331,7 +339,7 @@ function App() {
                   <Container>
                     <Navbar.Brand href="/">
                     <img
-                        alt=""
+                       alt=""
                         src="Logo1.png"
                         width="30"
                         height="30"

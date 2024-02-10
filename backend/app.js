@@ -21,7 +21,8 @@ app.get('/', (req, res) => {
 
 app.use("/api/users", userRouter);
 app.use("/api/blogs", blogRouter);
-app.use("/api/blogs/:id", userRouter)
+app.use("/blogs/:id", userRouter)
+app.use("/:id/like", blogRouter)
 
 app.use(errorHandler);
 app.use(unknownEndpoint);

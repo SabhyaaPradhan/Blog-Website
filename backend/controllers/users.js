@@ -71,16 +71,68 @@ userRouter.get("/", (req, res) => {
     User.find({}).then((users) => res.json(users))
 });
 
-userRouter.get('blogs/:id', async (req, res, next) => {
+userRouter.get('/blogs/:id', async (req, res, next) => {
     const { id } = req.params;
     try {
-      const blogs = await Blog.find({ user: id });
-  
-      res.json(blogs);
+      const user = await User.findById(id).populate('blogs')
+      res.json(user);
     } catch (error) {
       next(error);
     }
 });
 
-
-module.exports = userRouter
+userRouter.post('/follow/:userId', async (req, res) => {
+    const { userId } = req.params;
+    const { currentUser } = req.user; // Assuming you have middleware to extract the current user from the request
+  
+    try {
+      const userToFollow = await User.findById(userId);
+      if (!userToFollow) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+  
+      if (!userToFollow.followers.includes(currentUser._id)) {
+        userToFollow.followers.push(currentUser._id);
+        await userToFollow.save();
+      }
+  
+      if (!currentUser.following.includes(userId)) {
+        currentUser.following.push(userId);
+        await currentUser.save();
+      }
+  
+      res.status(200).json({ message: 'User followed successfully' });
+    } catch (error) {
+      console.error('Error following user:', error.message);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+  userRouter.post('/unfollow/:userId', async (req, res) => {
+    const { userId } = req.params;
+    const { currentUser } = req.user;
+  
+    try {
+      const userToUnfollow = await User.findById(userId);
+      if (!userToUnfollow) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+  
+      if (userToUnfollow.followers.includes(currentUser._id)) {
+        userToUnfollow.followers = userToUnfollow.followers.filter((id) => id !== currentUser._id);
+        await userToUnfollow.save();
+      }
+  
+      if (currentUser.following.includes(userId)) {
+        currentUser.following = currentUser.following.filter((id) => id !== userId);
+        await currentUser.save();
+      }
+  
+      res.status(200).json({ message: 'User unfollowed successfully' });
+    } catch (error) {
+      console.error('Error unfollowing user:', error.message);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+  module.exports = userRouter
