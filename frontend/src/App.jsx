@@ -279,7 +279,7 @@ function App() {
             <Container>
               <Navbar.Brand href="/"><img
                 alt=""
-                src="Logo1.png"
+                src="../src/Logo1.jpg"
                 width="30"
                 height="30"
                 className="d-inline-block align-top"
@@ -340,7 +340,7 @@ function App() {
                     <Navbar.Brand href="/">
                     <img
                        alt=""
-                        src="Logo1.png"
+                        src="../src/Logo1.jpg"
                         width="30"
                         height="30"
                         className="d-inline-block align-top"

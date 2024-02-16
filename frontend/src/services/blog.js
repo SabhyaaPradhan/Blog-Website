@@ -1,12 +1,12 @@
-import axios from 'axios';
+import axios from 'axios'
 
-const baseUrl = '/api/blogs';
+const baseUrl = '/api/blogs'
 
-let token = null;
+let token = null
 
 const setToken = newToken => {
-  token = `Bearer ${newToken}`;
-};
+  token = `Bearer ${newToken}`
+}
 
 const create = async data => {
   const config = {
@@ -16,37 +16,37 @@ const create = async data => {
       'Authorization': token,
     },
     body: JSON.stringify(data),
-  };
+  }
 
   try {
-    const response = await fetch(baseUrl, config);
-    const responseData = await response.json();
-    return responseData;
+    const response = await fetch(baseUrl, config)
+    const responseData = await response.json()
+    return responseData
   } catch (error) {
-    console.error('Fetch error:', error);
+    console.error('Fetch error:', error)
   }
-};
+}
 
 const getAll = async () => {
   const config = {
     headers: {
       'Authorization': token,
     },
-  };
+  }
 
   try {
-    const response = await fetch(baseUrl, config);
-    const responseData = await response.json();
-    return responseData;
+    const response = await fetch(baseUrl, config)
+    const responseData = await response.json()
+    return responseData
   } catch (error) {
-    console.error('Fetch error:', error);
+    console.error('Fetch error:', error)
   }
-};
+}
 
 const getSingleBlog = async (id) => {
-  const response = await axios.get(`${baseUrl}/${id}`);
-  return response.data;
-};
+  const response = await axios.get(`${baseUrl}/${id}`)
+  return response.data
+}
 
 const update = async (id, data) => {
   const config = {
@@ -56,16 +56,16 @@ const update = async (id, data) => {
       'Authorization': token,
     },
     body: JSON.stringify(data),
-  };
+  }
 
   try {
-    const response = await fetch(`${baseUrl}/${id}`, config);
-    const responseData = await response.json();
-    return responseData;
+    const response = await fetch(`${baseUrl}/${id}`, config)
+    const responseData = await response.json()
+    return responseData
   } catch (error) {
-    console.error('Fetch error:', error);
+    console.error('Fetch error:', error)
   }
-};
+}
 
 const remove = async id => {
   const config = {
@@ -73,15 +73,15 @@ const remove = async id => {
     headers: {
       'Authorization': token,
     },
-  };
+  }
 
   try {
-    const response = await fetch(`${baseUrl}/${id}`, config);
-    const responseData = await response.json();
-    return responseData;
+    const response = await fetch(`${baseUrl}/${id}`, config)
+    const responseData = await response.json()
+    return responseData
   } catch (error) {
-    console.error('Fetch error:', error);
+    console.error('Fetch error:', error)
   }
-};
+}
 
-export default { create, setToken, getAll, update, remove, getSingleBlog};
+export default { create, setToken, getAll, update, remove, getSingleBlog }

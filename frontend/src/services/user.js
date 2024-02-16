@@ -1,18 +1,18 @@
-import axios from 'axios';
+import axios from 'axios'
 
-const baseUrl = '/api/users';
+const baseUrl = '/api/users'
 
 const register = async (userData) => {
   try {
-    const response = await axios.post('/api/users/register', userData);
-    return response.data;
+    const response = await axios.post('/api/users/register', userData)
+    return response.data
   } catch (error) {
-    throw new Error(error.response.data.message || 'Registration failed');
+    throw new Error(error.response.data.message || 'Registration failed')
   }
-};
+}
 
 const userService = {
   register,
-};
+}
 
-export default userService;
+export default userService
